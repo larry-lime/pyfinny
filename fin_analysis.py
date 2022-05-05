@@ -1,5 +1,4 @@
 from yahoofinancials import YahooFinancials # I should use another package. This is not the best
-from finvizfinance.quote import finvizfinance
 import numpy as np
 import pandas as pd
 import pickle as pk
