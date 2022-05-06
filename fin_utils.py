@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+
 def list_companies():
     return [
         i.split("_")[0] for i in [x[0].split("/")[-1] for x in os.walk(os.getcwd())][2:]
