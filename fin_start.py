@@ -1,4 +1,5 @@
 from fin_analysis import *
+from fin_compare import *
 from fin_utils import *
 
 def menu():
