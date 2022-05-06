@@ -28,8 +28,8 @@ class Company:
         if not os.path.isdir(self._folder):
             os.mkdir(self._folder)
         # Change working directory to the company_financials folder
-        # Store File Infor_folermation
         self._dir = f"{ticker}_fin/"
+        # Store File Directory Information
         self._path = os.path.join(self._parent_dir, self._folder, self._dir)
 
     # Import and save Yahoo Financials data as binary files
@@ -40,9 +40,7 @@ class Company:
 
         # Print a start mesage
         print()
-        print(
-            f"Fetching ({self.ticker}) Data from Yahoo Finance (This may take a while so grab a snack or something)..."
-        )
+        print(f"Fetching ({self.ticker}) Data from Yahoo Finance (This may take a while so grab a snack or something)...")
 
         # Create the YahooFinancials object
         yf = YahooFinancials(self.ticker)
