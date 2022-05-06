@@ -1,4 +1,4 @@
-# Python Financial Analysis 
+# Fundamental Analysis
 
 ## About The Project (work in progress)
 A simple work in progress python tool to automate various aspects of financial analysis. I intend to use this to teach python for finance.
@@ -13,7 +13,7 @@ A simple work in progress python tool to automate various aspects of financial a
 
 ## To-Do List
 1. [ ] Calculate a full well formatted DCF
-2. [ ] Create
+2. [ ] Stop using YahooFinancials instead use financialmodelling prep's stock API
 3. [ ] Use Excel writer to do conditional formatting and overall making the end product nicer to look at
 4. [ ] Make the menu easier to use
 5. [ ] Add a GUI element
