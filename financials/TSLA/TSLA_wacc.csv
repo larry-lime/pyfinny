@@ -1,0 +1,14 @@
+,TSLA
+wacc,0.19153478392174594
+beta,2.132032
+costOfDebt,0.17168
+taxRate,0.21
+costOfDebtAfterTax,0.1356272
+riskFreeRate,0.02828
+costOfEquity,0.19184949504
+debt,4285000000.0
+equity,761218727936.0
+ebit,6523000000.0
+interestCoverageRatio,-18.220670391061454
+interestExpense,-358000000.0
+creditSpread,0.1434

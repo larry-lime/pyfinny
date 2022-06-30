@@ -1,0 +1,14 @@
+                               GOOG
+wacc                   1.153692e-01
+beta                   1.132940e+00
+costOfDebt             1.716800e-01
+taxRate                2.100000e-01
+costOfDebtAfterTax     1.356272e-01
+riskFreeRate           2.828000e-02
+costOfEquity           1.151992e-01
+debt                   1.284400e+10
+equity                 1.530530e+12
+ebit                   7.871400e+10
+interestCoverageRatio -2.274971e+02
+interestExpense       -3.460000e+08
+creditSpread           1.434000e-01
