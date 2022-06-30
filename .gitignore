@@ -2,3 +2,5 @@ comparables/*
 financials/*
 Session.vim
 __pycache__/
+!financials/README.md
+!comparables/README.md
