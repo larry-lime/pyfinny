@@ -1,6 +1,7 @@
-# Financials Folder README
+# Financials Folder
 
-This folder is where your company financials are going to go
+The `financials` directory stores all the financial data for each company
+
 Example File Structure
 ```
  .
@@ -24,16 +25,5 @@ Example File Structure
 │  ├──  GOOG_stats_binary
 │  ├──  GOOG_wacc.csv
 │  └──  GOOG_wacc.txt
-├──  README.md
-└──  TSLA
-   ├──  TSLA_fin.csv
-   ├──  TSLA_fin.txt
-   ├──  TSLA_fin.xlsx
-   ├──  TSLA_financials_binary
-   ├──  TSLA_stats.csv
-   ├──  TSLA_stats.txt
-   ├──  TSLA_stats_binary
-   ├──  TSLA_wacc.csv
-   └──  TSLA_wacc.txt
-
+└──  README.md
 ```
