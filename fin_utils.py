@@ -4,12 +4,7 @@ import os
 
 def list_companies():
     parent_dir = "financials"
-    company_list = (
-        list(os.listdir(f"./{parent_dir}")) if parent_dir in os.listdir(".") else []
-    )
-    print(company_list)
-    return company_list
-
+    return [i for i in list(os.listdir(f"./{parent_dir}")) if os.path.isdir(f"{parent_dir}/{i}")] if parent_dir in os.listdir(".") else []
 
 # Create an error log binary file in the current directory
 def error_log(e, parent_dir):
@@ -45,3 +40,9 @@ def camel_to_normal(camel: str):
         if cap:
             return camel
         return "".join(lst).title()
+
+def main():
+    print(list_companies())
+
+if __name__ == "__main__":
+    main()

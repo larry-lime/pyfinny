@@ -1,6 +1,6 @@
 # Financials Folder
 
-The `financials` directory stores all the financial data for each company
+The `financials/` directory stores all the financial data for each company
 
 Example File Structure
 ```

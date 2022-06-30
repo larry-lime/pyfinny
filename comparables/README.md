@@ -1,6 +1,6 @@
 # Comparables Folder
 
-The `comparables` folder stores the comparables data for selected companies
+The `comparables/` folder stores the comparables data for selected companies
 
 Example File Structure:
 ```
