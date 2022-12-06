@@ -37,9 +37,7 @@ def camel_to_normal(camel: str):
                 lst[i] = " " + lst[i]
             else:
                 cap = False
-        if cap:
-            return camel
-        return "".join(lst).title()
+        return camel if cap else "".join(lst).title()
 
 def main():
     print(list_companies())
