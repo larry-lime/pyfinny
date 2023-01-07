@@ -45,7 +45,7 @@ def read_tickers(
 ) -> list[str]:
 
     # Read tickers.csv
-    tickers_df = pd.read_csv(f"./{tickers_dir}/{ticker_file}.csv")
+    tickers_df = pd.read_csv(f"../{tickers_dir}/{ticker_file}.csv")
 
     # Return values in a column if a column is given, else the return the values in the first column
     if column_name:

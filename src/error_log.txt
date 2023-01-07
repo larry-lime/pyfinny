@@ -1,0 +1,6 @@
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 15/09/2022 23:33:18
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 15/09/2022 23:33:25
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 15/09/2022 23:33:33
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 15/09/2022 23:33:42
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 16/09/2022 00:01:49
+[Errno socket error] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:997) 16/09/2022 00:03:08
