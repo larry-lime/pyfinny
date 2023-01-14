@@ -1,19 +1,23 @@
 # Pyfinny
 
 ## Installation
-0. Make sure you have `pip` installed
 1. Clone the repository
-```shell
-git clone https://github.com/larry-lime/pyfinny.git
-```
-2. Activate Python virtual environment
-```shell
-cd pyfinny && source bin/activate
-```
-3. Install requirements
-```shell
-pip3 install -r requirements
-```
+    ```shell
+    git clone https://github.com/larry-lime/pyfinny.git
+    cd pyfinny
+    ```
+2. Create a python virtual environment
+    ```shell
+    python3 -m venv .
+    ```
+3. Activate Python virtual environment
+    ```shell
+    source bin/activate
+    ```
+4. Install requirements
+    ```shell
+    pip3 install -r requirements.txt
+    ```
 
 ## Usage
 

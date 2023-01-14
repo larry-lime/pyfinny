@@ -25,7 +25,7 @@ def get_company_tickers(
 
 def _load_data(
     company: str, statement_type: str, data_dirname: str = "data"
-) -> dict[str,int|str]:
+) -> dict[str, int | str]:
     """
     Returns a dictionary of financials for a given company and statement type
     """
@@ -38,13 +38,6 @@ def _load_data(
 def _fetch_data(company: str, statement_type: str) -> dict:
     """
     Returns a dictionary of financials for a given company and statement type
-    Example Output:
-    {
-        "symbol": "AAPL",
-        "name": "Apple Inc.",
-        "price": 129.62,
-        ...
-    }
     """
     url = f"https://financialmodelingprep.com/api/v3/{statement_type}/{company}?apikey={API_KEY}"
     response = requests.get(url)
