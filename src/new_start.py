@@ -27,7 +27,7 @@ def _load_data(
     company: str, statement_type: str, data_dirname: str = "data"
 ) -> dict[str, int | str]:
     """
-    Returns a dictionary of financials for a given company and statement type
+    Loads data from local json file and returns a dictionary
     """
     filepath = os.path.join(data_dirname, f"{statement_type}.json")
     with open(filepath, "r") as f:
@@ -37,7 +37,7 @@ def _load_data(
 
 def _fetch_data(company: str, statement_type: str) -> dict:
     """
-    Returns a dictionary of financials for a given company and statement type
+    Fetches data from the API and returns a dictionary
     """
     url = f"https://financialmodelingprep.com/api/v3/{statement_type}/{company}?apikey={API_KEY}"
     response = requests.get(url)
