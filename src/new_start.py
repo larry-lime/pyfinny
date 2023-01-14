@@ -22,7 +22,19 @@ def get_company_tickers(
     return companies
 
 
-def _get_data(company: str, statement_type: str) -> dict:
+def _load_data(
+    company: str, statement_type: str, data_dirname: str = "data"
+) -> dict[str,int|str]:
+    """
+    Returns a dictionary of financials for a given company and statement type
+    """
+    filepath = os.path.join(data_dirname, f"{statement_type}.json")
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    return data[company]
+
+
+def _fetch_data(company: str, statement_type: str) -> dict:
     """
     Returns a dictionary of financials for a given company and statement type
     """
