@@ -96,7 +96,7 @@ def get_financials(
                 _save_to_db(financial_statement_data[year_index], statement_type)
 
 
-def _comparable_analysis_helper(
+def _load_from_db(
     company: str,
     db_path: str = "/Users/lawrencelim/Projects/python-projects/pyfinny/financial_data.db",
 ) -> tuple:
@@ -152,17 +152,26 @@ def _comparable_analysis_helper(
     )
 
 
-def comparables_analysis(companies: list[str]) -> None:
+def comparables_analysis(companies: list[str], sheet_name: str = "Comparables") -> None:
     """
     Writes data from sqlite3 database to xlsx file
     """
-    for company in companies:
+    # Open xlsx file
+    workbook = openpyxl.load_workbook(
+        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/Comparable-Company-Analysis-Template.xlsx"
+    )
+    # Make a copy of the first sheet
+    workbook.copy_worksheet(workbook["Sheet1"])
+    # Rename the new sheet
+    workbook.active.title = sheet_name
+
+    for row_increment, company in enumerate(companies):
         (
             quote_dict,
             income_statement_dict,
             balance_sheet_dict,
             cash_flow_statement_dict,
-        ) = _comparable_analysis_helper(company)
+        ) = _load_from_db(company)
 
         price = quote_dict["price"]
         marketCap = quote_dict["marketCap"]
@@ -176,16 +185,22 @@ def comparables_analysis(companies: list[str]) -> None:
         revenue = income_statement_dict["revenue"]
         earnings = income_statement_dict["netIncome"]
 
-
-def load_companies():
-    companies = get_company_tickers()
-    get_financials(companies)
+        starting_row = 7
+        workbook.active.cell(row=starting_row + row_increment, column=3).value = price
+        workbook.active.cell(row=starting_row + row_increment, column=4).value = marketCap
+        workbook.active.cell(row=starting_row + row_increment, column=5).value = ev
+        workbook.active.cell(row=starting_row + row_increment, column=6).value = revenue
+        workbook.active.cell(row=starting_row + row_increment, column=7).value = ebitda
+        workbook.active.cell(row=starting_row + row_increment, column=8).value = ebit
+        workbook.active.cell(row=starting_row + row_increment, column=9).value = earnings
+    workbook.save(
+        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/Comparable-Company-Analysis-Template.xlsx"
+    )
 
 
 def main():
-    # companies = get_company_tickers()
-    # comparables_analysis(companies)
-    get_financials(['NVDA'])
+    companies = get_company_tickers()
+    comparables_analysis(companies)
 
 
 if __name__ == "__main__":
