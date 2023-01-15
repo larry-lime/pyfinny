@@ -35,6 +35,8 @@
 - P/E Ratio
 - Div Yield
 
+#### Decide whether or not they download the db with all the data or not
+
 
 ### Discounted Cash Flow Model
 
