@@ -9,7 +9,9 @@ import openpyxl
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
+# Directory Names
 resource_dirname = "resources"
+data_dirname = "data"
 
 statement_types = [
     "balance-sheet-statement",
@@ -20,7 +22,8 @@ statement_types = [
 
 
 def get_company_tickers(
-    filename: str = "companies.txt", ticker_dirname: str = "tickers"
+    filename: str = "load.txt",
+    ticker_dirname: str = "tickers",
 ) -> list[str]:
     """
     Reads a file of tickers and returns a list of tickers
@@ -33,9 +36,7 @@ def get_company_tickers(
     return companies
 
 
-def _load_from_json(
-    company: str, statement_type: str, data_dirname: str = "data"
-) -> list[dict[str, int | str]]:
+def _load_from_json(company: str, statement_type: str) -> list[dict[str, int | str]]:
     """
     Loads data from local json file and returns a dictionary
     """
@@ -153,12 +154,19 @@ def _load_from_db(company: str, db_path: str = "financial_data.db") -> tuple:
     )
 
 
-def comparables_analysis(companies: list[str], template_name: str = "Template") -> None:
+def comparables_analysis(
+    companies: list[str],
+    template_name: str = "Template",
+    comparables_analysis_name: str = "comparables_analysis.xlsx",
+) -> None:
     """
     Writes data from sqlite3 database to comparables_analysis.xlsx
     """
     # Open xlsx file
-    workbook = openpyxl.load_workbook("resources/comparables_analysis.xlsx")
+    comparables_analysis_path = os.path.join(
+        resource_dirname, comparables_analysis_name
+    )
+    workbook = openpyxl.load_workbook(comparables_analysis_path)
     # Make a copy of the first sheet
     workbook.copy_worksheet(workbook[template_name])
 
@@ -201,7 +209,8 @@ def comparables_analysis(companies: list[str], template_name: str = "Template") 
         workbook.active.cell(row=starting_row, column=7).value = ebitda // unit
         workbook.active.cell(row=starting_row, column=8).value = ebit // unit
         workbook.active.cell(row=starting_row, column=9).value = earnings // unit
-        workbook.active.cell( row=starting_row, column=10
+        workbook.active.cell(
+            row=starting_row, column=10
         ).value = (
             "=INDIRECT(ADDRESS(ROW(),COLUMN()-5))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
