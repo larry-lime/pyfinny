@@ -9,6 +9,7 @@ import openpyxl
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
+resource_dirname = "resources"
 
 statement_types = [
     "balance-sheet-statement",
@@ -57,8 +58,11 @@ def _fetch_from_api(company: str, statement_type: str) -> list[dict[str, int | s
 def _save_to_db(
     data: dict,
     statement_type: str,
-    db_path: str = "/Users/lawrencelim/Projects/python-projects/pyfinny/financial_data.db",
+    db_path: str = "financial_data.db",
 ):
+    """
+    Writes data to sqlite3 database
+    """
 
     # Create a hashmap of the statement types
     name_map = {
@@ -85,7 +89,7 @@ def get_financials(
     companies: list[str],
 ) -> None:
     """
-    Fetches data with API and writes to local sqlite3 database
+    Calls _fetch_from_api() to fetch data from the API and _save_to_db() to save the data to a database
     """
     for statement_type in statement_types:
         for company in tqdm(companies, desc=f"Writing {statement_type} data"):
@@ -95,10 +99,8 @@ def get_financials(
                 _save_to_db(financial_statement_data[year_index], statement_type)
 
 
-def _load_from_db(
-    company: str,
-    db_path: str = "/Users/lawrencelim/Projects/python-projects/pyfinny/financial_data.db",
-) -> tuple:
+# TODO pass arguments allowing user to select datapoints to load
+def _load_from_db(company: str, db_path: str = "financial_data.db") -> tuple:
     """
     Writes data from sqlite3 database to xlsx file
     """
@@ -151,16 +153,12 @@ def _load_from_db(
     )
 
 
-def comparables_analysis(
-    companies: list[str], template_name: str = "Template"
-) -> None:
+def comparables_analysis(companies: list[str], template_name: str = "Template") -> None:
     """
-    Writes data from sqlite3 database to xlsx file
+    Writes data from sqlite3 database to comparables_analysis.xlsx
     """
     # Open xlsx file
-    workbook = openpyxl.load_workbook(
-        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/comparables_analysis.xlsx"
-    )
+    workbook = openpyxl.load_workbook("resources/comparables_analysis.xlsx")
     # Make a copy of the first sheet
     workbook.copy_worksheet(workbook[template_name])
 
@@ -194,30 +192,39 @@ def comparables_analysis(
         starting_row = 7
         unit = 1000000
 
-        workbook.active.cell(row=starting_row + row_increment, column=2).value = company
-        workbook.active.cell(row=starting_row + row_increment, column=3).value = price
-        workbook.active.cell(row=starting_row + row_increment, column=4).value = (
-            marketCap // unit
+        # Insert a row
+        workbook.active.cell(row=starting_row, column=2).value = company
+        workbook.active.cell(row=starting_row, column=3).value = price
+        workbook.active.cell(row=starting_row, column=4).value = marketCap // unit
+        workbook.active.cell(row=starting_row, column=5).value = ev // unit
+        workbook.active.cell(row=starting_row, column=6).value = revenue // unit
+        workbook.active.cell(row=starting_row, column=7).value = ebitda // unit
+        workbook.active.cell(row=starting_row, column=8).value = ebit // unit
+        workbook.active.cell(row=starting_row, column=9).value = earnings // unit
+        workbook.active.cell( row=starting_row, column=10
+        ).value = (
+            "=INDIRECT(ADDRESS(ROW(),COLUMN()-5))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(row=starting_row + row_increment, column=5).value = (
-            ev // unit
+        workbook.active.cell(
+            row=starting_row, column=11
+        ).value = (
+            "=INDIRECT(ADDRESS(ROW(),COLUMN()-6))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(row=starting_row + row_increment, column=6).value = (
-            revenue // unit
+        workbook.active.cell(
+            row=starting_row, column=12
+        ).value = (
+            "=INDIRECT(ADDRESS(ROW(),COLUMN()-7))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(row=starting_row + row_increment, column=7).value = (
-            ebitda // unit
-        )
-        workbook.active.cell(row=starting_row + row_increment, column=8).value = (
-            ebit // unit
-        )
-        workbook.active.cell(row=starting_row + row_increment, column=9).value = (
-            earnings // unit
+        workbook.active.cell(
+            row=starting_row, column=13
+        ).value = (
+            "=INDIRECT(ADDRESS(ROW(),COLUMN()-9))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
 
-    workbook.save(
-        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/comparables_analysis.xlsx"
-    )
+        if row_increment < len(companies) - 1:
+            workbook.active.insert_rows(starting_row)
+
+    workbook.save("resources/comparables_analysis.xlsx")
 
 
 def main():
