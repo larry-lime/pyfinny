@@ -100,8 +100,10 @@ def get_financials(
                 _save_to_db(financial_statement_data[year_index], statement_type)
 
 
-# TODO pass arguments allowing user to select datapoints to load
-def _load_from_db(company: str, db_path: str = "financial_data.db") -> tuple:
+def _comparables_analysis_helper(
+    company: str,
+    db_path: str = "financial_data.db",
+) -> tuple:
     """
     Writes data from sqlite3 database to xlsx file
     """
@@ -177,13 +179,16 @@ def comparables_analysis(
     # Change active worksheet
     workbook.active = worksheet
 
+    starting_row = 7
+    unit = 1000000
+
     for row_increment, company in enumerate(companies):
         (
             quote_dict,
             income_statement_dict,
             balance_sheet_dict,
             cash_flow_statement_dict,
-        ) = _load_from_db(company)
+        ) = _comparables_analysis_helper(company)
 
         price = quote_dict["price"]
         marketCap = quote_dict["marketCap"]
@@ -196,9 +201,6 @@ def comparables_analysis(
         ebit = ebitda - income_statement_dict["depreciationAndAmortization"]
         revenue = income_statement_dict["revenue"]
         earnings = income_statement_dict["netIncome"]
-
-        starting_row = 7
-        unit = 1000000
 
         # Insert a row
         workbook.active.cell(row=starting_row, column=2).value = company
@@ -234,6 +236,118 @@ def comparables_analysis(
             workbook.active.insert_rows(starting_row)
 
     workbook.save("resources/comparables_analysis.xlsx")
+
+
+# Combine this and _comparables_analysis_helper into one function
+def _dcf_helper(
+    company: str,
+    db_path: str = "financial_data.db",
+):
+
+    # Connect to database
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Some Notes
+    # Manually input perpetual growth
+    # Calculate growth rate from the previous year's revenue
+    # Get revenue for 4 years
+    # Manually input risk free rate
+    # Manually input expected return
+    # Manually input Beta
+    # effectiveTaxRate = incomeTaxExpense / incomeBeforeTax
+    # Calculate NOPLAT from ebit * (1 - effectiveTaxRate)
+    # Calculate average rate of debt
+    quote_dict = {
+        "price": 0.0,
+        "marketCap": 0,
+        "sharesOutstanding": 0,
+    }
+    income_statement_dict = {
+        "netIncome": 0,
+        "revenue": 0,
+        "ebitda": 0,
+        "depreciationAndAmortization": 0,
+        "incomeTaxExpense": 0,
+        "incomeBeforeTax": 0,
+    }
+    balance_sheet_dict = {
+        "cashAndCashEquivalents": 0,
+        "totalCurrentAssets": 0,
+        "totalCurrentLiabilities": 0,
+        "totalDebt": 0,
+    }
+    cash_flow_statement_dict = {
+        "capitalExpenditure": 0,
+    }
+
+    # TODO Add if conditions and change the typing to get lists
+    # Fetch corresponding data from database and add it to the dictionary
+    for value_type in quote_dict:
+        cursor.execute(f"SELECT {value_type} FROM quote WHERE symbol = '{company}'")
+        quote_dict[value_type] = cursor.fetchall()[0]
+    for value_type in income_statement_dict:
+        cursor.execute(
+            f"SELECT {value_type} FROM income_statement WHERE symbol = '{company}'"
+        )
+        income_statement_dict[value_type] = cursor.fetchall()[0]
+    for value_type in balance_sheet_dict:
+        cursor.execute(
+            f"SELECT {value_type} FROM balance_sheet WHERE symbol = '{company}'"
+        )
+        balance_sheet_dict[value_type] = cursor.fetchall()[0]
+    for value_type in cash_flow_statement_dict:
+        cursor.execute(
+            f"SELECT {value_type} FROM cash_flow_statement WHERE symbol = {company}"
+        )
+        cash_flow_statement_dict[value_type] = cursor.fetchall()[0]
+
+    return (
+        quote_dict,
+        income_statement_dict,
+        balance_sheet_dict,
+        cash_flow_statement_dict,
+    )
+
+
+def dcf_analysis(
+    companies: list[str],
+    template_name: str = "Template",
+    dcf_analysis_name: str = "dcf.xlsx",
+):
+    """
+    Write a DCF analysis to an Excel file.
+    """
+    # Open xlsx file
+    dcf_analysis_path = os.path.join(resource_dirname, dcf_analysis_name)
+    workbook = openpyxl.load_workbook(dcf_analysis_path)
+    # Make a copy of the first sheet
+    workbook.copy_worksheet(workbook[template_name])
+
+    # Rename the worksheet
+    worksheet = workbook["Template Copy"]
+    worksheet.title = " ".join(companies)
+
+    # TODO: Complete the rest of the code here
+    for row_increment, company in enumerate(companies):
+        (
+            quote_dict,
+            income_statement_dict,
+            balance_sheet_dict,
+            cash_flow_statement_dict,
+        ) = _dcf_helper(company)
+        price = quote_dict["price"]
+        marketCap = quote_dict["marketCap"]
+        ev = (
+            marketCap
+            + balance_sheet_dict["totalDebt"]
+            - balance_sheet_dict["cashAndCashEquivalents"]
+        )
+        ebitda = income_statement_dict["ebitda"]
+        ebit = ebitda - income_statement_dict["depreciationAndAmortization"]
+        revenue = income_statement_dict["revenue"]
+        earnings = income_statement_dict["netIncome"]
+        pass
 
 
 def main():
