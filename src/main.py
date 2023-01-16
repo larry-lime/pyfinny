@@ -4,7 +4,6 @@ import json
 import requests
 import os
 import sqlite3
-import xlsxwriter
 import openpyxl
 
 load_dotenv()
@@ -152,18 +151,25 @@ def _load_from_db(
     )
 
 
-def comparables_analysis(companies: list[str], sheet_name: str = "Comparables") -> None:
+def comparables_analysis(
+    companies: list[str], template_name: str = "Template"
+) -> None:
     """
     Writes data from sqlite3 database to xlsx file
     """
     # Open xlsx file
     workbook = openpyxl.load_workbook(
-        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/Comparable-Company-Analysis-Template.xlsx"
+        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/comparables_analysis.xlsx"
     )
     # Make a copy of the first sheet
-    workbook.copy_worksheet(workbook["Sheet1"])
-    # Rename the new sheet
-    workbook.active.title = sheet_name
+    workbook.copy_worksheet(workbook[template_name])
+
+    # Rename the worksheet
+    worksheet = workbook["Template Copy"]
+    worksheet.title = " ".join(companies)
+
+    # Change active worksheet
+    workbook.active = worksheet
 
     for row_increment, company in enumerate(companies):
         (
@@ -186,15 +192,31 @@ def comparables_analysis(companies: list[str], sheet_name: str = "Comparables") 
         earnings = income_statement_dict["netIncome"]
 
         starting_row = 7
+        unit = 1000000
+
+        workbook.active.cell(row=starting_row + row_increment, column=2).value = company
         workbook.active.cell(row=starting_row + row_increment, column=3).value = price
-        workbook.active.cell(row=starting_row + row_increment, column=4).value = marketCap
-        workbook.active.cell(row=starting_row + row_increment, column=5).value = ev
-        workbook.active.cell(row=starting_row + row_increment, column=6).value = revenue
-        workbook.active.cell(row=starting_row + row_increment, column=7).value = ebitda
-        workbook.active.cell(row=starting_row + row_increment, column=8).value = ebit
-        workbook.active.cell(row=starting_row + row_increment, column=9).value = earnings
+        workbook.active.cell(row=starting_row + row_increment, column=4).value = (
+            marketCap // unit
+        )
+        workbook.active.cell(row=starting_row + row_increment, column=5).value = (
+            ev // unit
+        )
+        workbook.active.cell(row=starting_row + row_increment, column=6).value = (
+            revenue // unit
+        )
+        workbook.active.cell(row=starting_row + row_increment, column=7).value = (
+            ebitda // unit
+        )
+        workbook.active.cell(row=starting_row + row_increment, column=8).value = (
+            ebit // unit
+        )
+        workbook.active.cell(row=starting_row + row_increment, column=9).value = (
+            earnings // unit
+        )
+
     workbook.save(
-        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/Comparable-Company-Analysis-Template.xlsx"
+        "/Users/lawrencelim/Projects/python-projects/pyfinny/resources/comparables_analysis.xlsx"
     )
 
 
