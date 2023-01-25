@@ -202,7 +202,6 @@ def comparables_analysis(
         earnings = income_statement_dict["netIncome"]
 
         # Insert a row
-        # Change to worksheet and letter and number syntax
         worksheet[f"B{starting_row}"] = company
         worksheet[f"C{starting_row}"] = price
         worksheet[f"D{starting_row}"] = marketCap // unit
@@ -211,18 +210,18 @@ def comparables_analysis(
         worksheet[f"G{starting_row}"] = ebitda // unit
         worksheet[f"H{starting_row}"] = ebit // unit
         worksheet[f"I{starting_row}"] = earnings // unit
-        worksheet[f"J{starting_row}"] = (
-            "=INDIRECT(ADDRESS(ROW(),COLUMN()-5))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
-        )
-        worksheet[f"K{starting_row}"] = (
-            "=INDIRECT(ADDRESS(ROW(),COLUMN()-6))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
-        )
-        worksheet[f"L{starting_row}"] = (
-            "=INDIRECT(ADDRESS(ROW(),COLUMN()-7))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
-        )
-        worksheet[f"M{starting_row}"] = (
-            "=INDIRECT(ADDRESS(ROW(),COLUMN()-9))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
-        )
+        worksheet[
+            f"J{starting_row}"
+        ] = "=INDIRECT(ADDRESS(ROW(),COLUMN()-5))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
+        worksheet[
+            f"K{starting_row}"
+        ] = "=INDIRECT(ADDRESS(ROW(),COLUMN()-6))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
+        worksheet[
+            f"L{starting_row}"
+        ] = "=INDIRECT(ADDRESS(ROW(),COLUMN()-7))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
+        worksheet[
+            f"M{starting_row}"
+        ] = "=INDIRECT(ADDRESS(ROW(),COLUMN()-9))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
 
         if row_increment < len(companies) - 1:
             workbook.active.insert_rows(starting_row)
@@ -352,7 +351,9 @@ def dcf_analysis(
         total_revenue = income_statement_dict["revenue"]
         netIncome = income_statement_dict["netIncome"]
         # NOTE: This changes when the range of years the DCF uses changes
-        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[0]
+        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[
+            0
+        ]
 
         ebitda = income_statement_dict["ebitda"]
         depreciationAndAmortization = income_statement_dict[
@@ -390,7 +391,7 @@ def dcf_analysis(
         # In C19, D19, E19, insert the total revenue for the last 3 years
         for i, revenue in enumerate(total_revenue):
             worksheet[f"C{19 + i}"] = revenue
-        worksheet['C19'] = first_year_growth_rate
+        worksheet["C19"] = first_year_growth_rate
 
 
 def main():
