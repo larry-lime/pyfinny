@@ -129,7 +129,7 @@ def _comparables_analysis_helper(
 
     # Fetch corresponding data from database and add it to the dictionary
     for value_type in profile_dict:
-        cursor.execute(f"SELECT {value_type} FROM quote WHERE symbol = '{company}'")
+        cursor.execute(f"SELECT {value_type} FROM profile WHERE symbol = '{company}'")
         profile_dict[value_type] = cursor.fetchone()[0]
     for value_type in income_statement_dict:
         cursor.execute(
@@ -190,7 +190,7 @@ def comparables_analysis(
         ) = _comparables_analysis_helper(company)
 
         price = profile_dict["price"]
-        marketCap = profile_dict["marketCap"]
+        marketCap = profile_dict["mktCap"]
         ev = (
             marketCap
             + balance_sheet_dict["totalDebt"]
@@ -202,32 +202,25 @@ def comparables_analysis(
         earnings = income_statement_dict["netIncome"]
 
         # Insert a row
-        workbook.active.cell(row=starting_row, column=2).value = company
-        workbook.active.cell(row=starting_row, column=3).value = price
-        workbook.active.cell(row=starting_row, column=4).value = marketCap // unit
-        workbook.active.cell(row=starting_row, column=5).value = ev // unit
-        workbook.active.cell(row=starting_row, column=6).value = revenue // unit
-        workbook.active.cell(row=starting_row, column=7).value = ebitda // unit
-        workbook.active.cell(row=starting_row, column=8).value = ebit // unit
-        workbook.active.cell(row=starting_row, column=9).value = earnings // unit
-        workbook.active.cell(
-            row=starting_row, column=10
-        ).value = (
+        # Change to worksheet and letter and number syntax
+        worksheet[f"B{starting_row}"] = company
+        worksheet[f"C{starting_row}"] = price
+        worksheet[f"D{starting_row}"] = marketCap // unit
+        worksheet[f"E{starting_row}"] = ev // unit
+        worksheet[f"F{starting_row}"] = revenue // unit
+        worksheet[f"G{starting_row}"] = ebitda // unit
+        worksheet[f"H{starting_row}"] = ebit // unit
+        worksheet[f"I{starting_row}"] = earnings // unit
+        worksheet[f"J{starting_row}"] = (
             "=INDIRECT(ADDRESS(ROW(),COLUMN()-5))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(
-            row=starting_row, column=11
-        ).value = (
+        worksheet[f"K{starting_row}"] = (
             "=INDIRECT(ADDRESS(ROW(),COLUMN()-6))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(
-            row=starting_row, column=12
-        ).value = (
+        worksheet[f"L{starting_row}"] = (
             "=INDIRECT(ADDRESS(ROW(),COLUMN()-7))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
-        workbook.active.cell(
-            row=starting_row, column=13
-        ).value = (
+        worksheet[f"M{starting_row}"] = (
             "=INDIRECT(ADDRESS(ROW(),COLUMN()-9))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
         )
 
@@ -291,7 +284,7 @@ def _dcf_helper(
     # sharesOutstanding, price, totalDebt, (latest) effectiveTaxRate
 
     for value_type in profile_dict:
-        cursor.execute(f"SELECT {value_type} FROM quote WHERE symbol = '{company}'")
+        cursor.execute(f"SELECT {value_type} FROM profile WHERE symbol = '{company}'")
         profile_dict[value_type] = cursor.fetchone()[0]
 
     for value_type in income_statement_dict:
@@ -343,8 +336,7 @@ def dcf_analysis(
     worksheet.title = "".join(companies)
 
     # TODO: Complete the rest of the code here
-    for row_increment, company in enumerate(companies):
-        starting_row = 2 + row_increment * 2
+    for company in companies:
         (
             profile_dict,
             income_statement_dict,
@@ -360,9 +352,7 @@ def dcf_analysis(
         total_revenue = income_statement_dict["revenue"]
         netIncome = income_statement_dict["netIncome"]
         # NOTE: This changes when the range of years the DCF uses changes
-        second_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[
-            0
-        ]
+        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[0]
 
         ebitda = income_statement_dict["ebitda"]
         depreciationAndAmortization = income_statement_dict[
@@ -392,10 +382,20 @@ def dcf_analysis(
         marketCap = profile_dict["mktCap"]
         beta = profile_dict["beta"]
 
+        # DCF Valuation
+        worksheet[f"C{10 + 2 * companies.index(company)}"] = sharesOutstanding
+        worksheet[f"C{11 + 2 * companies.index(company)}"] = current_share_price
+
+        # FCF Buildup
+        # In C19, D19, E19, insert the total revenue for the last 3 years
+        for i, revenue in enumerate(total_revenue):
+            worksheet[f"C{19 + i}"] = revenue
+        worksheet['C19'] = first_year_growth_rate
+
 
 def main():
     companies = get_company_tickers()
-    get_financials(companies)
+    comparables_analysis(companies)
     # (
     #     profile_dict,
     #     income_statement_dict,
