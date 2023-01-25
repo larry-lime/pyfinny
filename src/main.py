@@ -17,7 +17,7 @@ statement_types = [
     "balance-sheet-statement",
     "cash-flow-statement",
     "income-statement",
-    "quote",
+    "profile",
 ]
 
 
@@ -31,8 +31,7 @@ def get_company_tickers(
     companies = []
     filepath = os.path.join(ticker_dirname, filename)
     with open(filepath, "r") as f:
-        for line in f:
-            companies.append(line.strip())
+        companies.extend(line.strip() for line in f)
     return companies
 
 
@@ -50,10 +49,10 @@ def _fetch_from_api(company: str, statement_type: str) -> list[dict[str, int | s
     """
     Fetches data from the API and returns a dictionary
     """
-    url = f"https://financialmodelingprep.com/api/v3/{statement_type}/{company}?apikey={API_KEY}"
+    # NOTE Limit is set to 4 because we only want the last 4 years of data
+    url = f"https://financialmodelingprep.com/api/v3/{statement_type}/{company}?apikey={API_KEY}&limit=4"
     response = requests.get(url)
-    data = response.json()
-    return data
+    return response.json()
 
 
 def _save_to_db(
@@ -70,7 +69,7 @@ def _save_to_db(
         "balance-sheet-statement": "balance_sheet",
         "cash-flow-statement": "cash_flow_statement",
         "income-statement": "income_statement",
-        "quote": "quote",
+        "profile": "profile",
     }
 
     # Create data tuple and VALUES string
@@ -112,9 +111,9 @@ def _comparables_analysis_helper(
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    quote_dict = {
+    profile_dict = {
         "price": 0.0,
-        "marketCap": 0,
+        "mktCap": 0,
     }
     income_statement_dict = {
         "netIncome": 0,
@@ -129,9 +128,9 @@ def _comparables_analysis_helper(
     cash_flow_statement_dict = {}
 
     # Fetch corresponding data from database and add it to the dictionary
-    for value_type in quote_dict:
+    for value_type in profile_dict:
         cursor.execute(f"SELECT {value_type} FROM quote WHERE symbol = '{company}'")
-        quote_dict[value_type] = cursor.fetchone()[0]
+        profile_dict[value_type] = cursor.fetchone()[0]
     for value_type in income_statement_dict:
         cursor.execute(
             f"SELECT {value_type} FROM income_statement WHERE symbol = '{company}'"
@@ -149,7 +148,7 @@ def _comparables_analysis_helper(
         cash_flow_statement_dict[value_type] = cursor.fetchone()[0]
 
     return (
-        quote_dict,
+        profile_dict,
         income_statement_dict,
         balance_sheet_dict,
         cash_flow_statement_dict,
@@ -184,14 +183,14 @@ def comparables_analysis(
 
     for row_increment, company in enumerate(companies):
         (
-            quote_dict,
+            profile_dict,
             income_statement_dict,
             balance_sheet_dict,
             cash_flow_statement_dict,
         ) = _comparables_analysis_helper(company)
 
-        price = quote_dict["price"]
-        marketCap = quote_dict["marketCap"]
+        price = profile_dict["price"]
+        marketCap = profile_dict["marketCap"]
         ev = (
             marketCap
             + balance_sheet_dict["totalDebt"]
@@ -258,52 +257,67 @@ def _dcf_helper(
     # effectiveTaxRate = incomeTaxExpense / incomeBeforeTax
     # Calculate NOPLAT from ebit * (1 - effectiveTaxRate)
     # Calculate average rate of debt
-    quote_dict = {
+    profile_dict = {
         "price": 0.0,
-        "marketCap": 0,
-        "sharesOutstanding": 0,
+        "mktCap": 0,
+        "beta": 0.0,
     }
     income_statement_dict = {
-        "netIncome": 0,
-        "revenue": 0,
-        "ebitda": 0,
-        "depreciationAndAmortization": 0,
+        "netIncome": [],
+        "revenue": [],
+        "ebitda": [],
+        "depreciationAndAmortization": [],
         "incomeTaxExpense": 0,
         "incomeBeforeTax": 0,
+        "interestExpense": 0,
     }
     balance_sheet_dict = {
-        "cashAndCashEquivalents": 0,
-        "totalCurrentAssets": 0,
-        "totalCurrentLiabilities": 0,
+        "cashAndCashEquivalents": [],
+        "totalCurrentAssets": [],
+        "totalCurrentLiabilities": [],
         "totalDebt": 0,
     }
     cash_flow_statement_dict = {
-        "capitalExpenditure": 0,
+        "capitalExpenditure": [],
     }
 
-    # TODO Add if conditions and change the typing to get lists
-    # Fetch corresponding data from database and add it to the dictionary
-    for value_type in quote_dict:
+    # Values that need to be returned as a list because I need to do a three year projection
+    # NOPLAT = ebit * (1 - (incomeTaxExpense / incomeBeforeTax))
+    # workingCapital = totalCurrentAssets - totalCurrentLiabilities
+    # average_rate_of_debt = (interestExpense / totalDebt) * -1
+    # netIncome, NOPLAT, depreciationAndAmortization, workingCapital, capitalExpenditure
+
+    # Values that are an integer or float. I have to figure out how to get beta though
+    # sharesOutstanding, price, totalDebt, (latest) effectiveTaxRate
+
+    for value_type in profile_dict:
         cursor.execute(f"SELECT {value_type} FROM quote WHERE symbol = '{company}'")
-        quote_dict[value_type] = cursor.fetchall()[0]
+        profile_dict[value_type] = cursor.fetchone()[0]
+
     for value_type in income_statement_dict:
         cursor.execute(
             f"SELECT {value_type} FROM income_statement WHERE symbol = '{company}'"
         )
-        income_statement_dict[value_type] = cursor.fetchall()[0]
+        if value_type in ["incomeTaxExpense", "incomeBeforeTax", "interestExpense"]:
+            income_statement_dict[value_type] = cursor.fetchone()[0]
+        else:
+            income_statement_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
     for value_type in balance_sheet_dict:
         cursor.execute(
             f"SELECT {value_type} FROM balance_sheet WHERE symbol = '{company}'"
         )
-        balance_sheet_dict[value_type] = cursor.fetchall()[0]
+        if value_type in ["totalDebt"]:
+            balance_sheet_dict[value_type] = cursor.fetchone()[0]
+        else:
+            balance_sheet_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
     for value_type in cash_flow_statement_dict:
         cursor.execute(
-            f"SELECT {value_type} FROM cash_flow_statement WHERE symbol = {company}"
+            f"SELECT {value_type} FROM cash_flow_statement WHERE symbol = '{company}'"
         )
-        cash_flow_statement_dict[value_type] = cursor.fetchall()[0]
+        cash_flow_statement_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
 
     return (
-        quote_dict,
+        profile_dict,
         income_statement_dict,
         balance_sheet_dict,
         cash_flow_statement_dict,
@@ -326,33 +340,79 @@ def dcf_analysis(
 
     # Rename the worksheet
     worksheet = workbook["Template Copy"]
-    worksheet.title = " ".join(companies)
+    worksheet.title = "".join(companies)
 
     # TODO: Complete the rest of the code here
     for row_increment, company in enumerate(companies):
+        starting_row = 2 + row_increment * 2
         (
-            quote_dict,
+            profile_dict,
             income_statement_dict,
             balance_sheet_dict,
             cash_flow_statement_dict,
         ) = _dcf_helper(company)
-        price = quote_dict["price"]
-        marketCap = quote_dict["marketCap"]
-        ev = (
-            marketCap
-            + balance_sheet_dict["totalDebt"]
-            - balance_sheet_dict["cashAndCashEquivalents"]
-        )
+
+        # DCF Valuation
+        sharesOutstanding = profile_dict["mktCap"] / profile_dict["price"]
+        current_share_price = profile_dict["price"]
+
+        # FCF Buildup
+        total_revenue = income_statement_dict["revenue"]
+        netIncome = income_statement_dict["netIncome"]
+        # NOTE: This changes when the range of years the DCF uses changes
+        second_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[
+            0
+        ]
+
         ebitda = income_statement_dict["ebitda"]
-        ebit = ebitda - income_statement_dict["depreciationAndAmortization"]
-        revenue = income_statement_dict["revenue"]
-        earnings = income_statement_dict["netIncome"]
-        pass
+        depreciationAndAmortization = income_statement_dict[
+            "depreciationAndAmortization"
+        ]
+        ebit = [e - d_and_a for e, d_and_a in zip(ebitda, depreciationAndAmortization)]
+        effectiveTaxRate = (
+            income_statement_dict["incomeTaxExpense"]
+            / income_statement_dict["incomeBeforeTax"]
+        )
+        noplat = [e * (1 - effectiveTaxRate) for e in ebit]
+        workingCapital = [
+            tca - tcl
+            for tca, tcl in zip(
+                balance_sheet_dict["totalCurrentAssets"],
+                balance_sheet_dict["totalCurrentLiabilities"],
+            )
+        ]
+        capitalExpenditure = cash_flow_statement_dict["capitalExpenditure"]
+
+        # WACC Calculation
+        average_rate_of_debt = (
+            income_statement_dict["interestExpense"] / balance_sheet_dict["totalDebt"]
+        ) * -1
+        tax_rate = effectiveTaxRate
+        totalDebt = balance_sheet_dict["totalDebt"]
+        marketCap = profile_dict["mktCap"]
+        beta = profile_dict["beta"]
 
 
 def main():
     companies = get_company_tickers()
-    comparables_analysis(companies)
+    get_financials(companies)
+    # (
+    #     profile_dict,
+    #     income_statement_dict,
+    #     balance_sheet_dict,
+    #     cash_flow_statement_dict,
+    # ) = _dcf_helper("AAPL")
+    # print("profile_dict")
+    # [print(i, j) for i, j in profile_dict.items()]
+    # print("\nincome_statement_dict")
+    # [print(i, j) for i, j in income_statement_dict.items()]
+    # print("\nbalance_sheet_dict")
+    # [print(i, j) for i, j in balance_sheet_dict.items()]
+    # print("\ncash_flow_statement_dict")
+    # [print(i, j) for i, j in cash_flow_statement_dict.items()]
+    # print(income_statement_dict)
+    # print(balance_sheet_dict)
+    # print(cash_flow_statement_dict)
 
 
 if __name__ == "__main__":
