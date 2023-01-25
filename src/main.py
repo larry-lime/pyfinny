@@ -226,7 +226,7 @@ def comparables_analysis(
         if row_increment < len(companies) - 1:
             workbook.active.insert_rows(starting_row)
 
-    workbook.save("resources/comparables_analysis.xlsx")
+    workbook.save(comparables_analysis_path)
 
 
 # Combine this and _comparables_analysis_helper into one function
@@ -327,15 +327,15 @@ def dcf_analysis(
     # Open xlsx file
     dcf_analysis_path = os.path.join(resource_dirname, dcf_analysis_name)
     workbook = openpyxl.load_workbook(dcf_analysis_path)
-    # Make a copy of the first sheet
-    workbook.copy_worksheet(workbook[template_name])
-
-    # Rename the worksheet
-    worksheet = workbook["Template Copy"]
-    worksheet.title = "".join(companies)
 
     # TODO: Complete the rest of the code here
     for company in companies:
+        # Make a copy of the first sheet
+        workbook.copy_worksheet(workbook[template_name])
+
+        # Rename the worksheet
+        worksheet = workbook["Template Copy"]
+        worksheet.title = "".join(company)
         (
             profile_dict,
             income_statement_dict,
@@ -351,9 +351,7 @@ def dcf_analysis(
         total_revenue = income_statement_dict["revenue"]
         netIncome = income_statement_dict["netIncome"]
         # NOTE: This changes when the range of years the DCF uses changes
-        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[
-            0
-        ]
+        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[0]
 
         ebitda = income_statement_dict["ebitda"]
         depreciationAndAmortization = income_statement_dict[
@@ -384,19 +382,59 @@ def dcf_analysis(
         beta = profile_dict["beta"]
 
         # DCF Valuation
-        worksheet[f"C{10 + 2 * companies.index(company)}"] = sharesOutstanding
-        worksheet[f"C{11 + 2 * companies.index(company)}"] = current_share_price
+        # In C10, insert the number of shares outstanding
+        worksheet["C10"] = sharesOutstanding
+        # In C11, insert the current share price
+        worksheet["C11"] = current_share_price
 
         # FCF Buildup
         # In C19, D19, E19, insert the total revenue for the last 3 years
-        for i, revenue in enumerate(total_revenue):
-            worksheet[f"C{19 + i}"] = revenue
-        worksheet["C19"] = first_year_growth_rate
+        # Iterate over the last three values in the total_revenue list
+        letters = ["C", "D", "E"]
+        for revenue, letter in zip(total_revenue[-3:], letters):
+            worksheet[f"{letter}19"] = revenue
+        # In C19, insert the first year growth rate
+        worksheet["C20"] = first_year_growth_rate
+        # In C21, D21, E21, insert the net income for the last 3 years
+        # Iterate over the last three values in the netIncome list
+        for net_income, letter in zip(netIncome[-3:], letters):
+            worksheet[f"{letter}21"] = net_income
+        # In C24, D24, E24, insert the noplat for the last 3 years
+        # Iterate over the last three values in the noplat list
+        for noplat, letter in zip(noplat[-3:], letters):
+            worksheet[f"{letter}24"] = noplat
+        # In C26, D26, E26, insert the depreciationAndAmortization for the last 3 years
+        # Iterate over the last three values in the depreciationAndAmortization list
+        for dep_and_amort, letter in zip(depreciationAndAmortization[-3:], letters):
+            worksheet[f"{letter}26"] = dep_and_amort
+        # In C28, D28, E28, insert the workingCapital for the last 3 years
+        # Iterate over the last three values in the workingCapital list
+        for wc, letter in zip(workingCapital[-3:], letters):
+            worksheet[f"{letter}28"] = wc
+        # In C30, D30, E30, insert the capitalExpenditure for the last 3 years
+        # Iterate over the last three values in the capitalExpenditure list
+        for cap_expend, letter in zip(capitalExpenditure[-3:], letters):
+            worksheet[f"{letter}30"] = cap_expend
+
+        # WACC Calculation
+        # In C36, insert the average_rate_of_debt
+        worksheet["C36"] = average_rate_of_debt
+        # In C37, insert the tax_rate
+        worksheet["C37"] = tax_rate
+        # In C40, insert the beta
+        worksheet["C40"] = beta
+        # In E36, insert the totalDebt
+        worksheet["E36"] = totalDebt
+        # In E37 insert the mkCap
+        worksheet["E37"] = marketCap
+
+    workbook.save(dcf_analysis_path)
 
 
 def main():
     companies = get_company_tickers()
-    comparables_analysis(companies)
+    # comparables_analysis(companies)
+    dcf_analysis(companies)
     # (
     #     profile_dict,
     #     income_statement_dict,
