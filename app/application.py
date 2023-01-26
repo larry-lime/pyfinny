@@ -30,10 +30,10 @@ def get_financials(
     companies = get_company_tickers(filename)
     for statement_type in statement_types:
         for company in tqdm(companies, desc=f"Writing {statement_type} data"):
-            financial_statement_data = _fetch_from_api(company, statement_type)
+            financial_statement_data = fetch_from_api(company, statement_type)
             # financial_statement_data = _load_from_json(company, statement_type)
             for year_index in range(len(financial_statement_data)):
-                _save_to_db(financial_statement_data[year_index], statement_type)
+                save_to_db(financial_statement_data[year_index], statement_type)
 
 
 def dcf_analysis(
@@ -203,7 +203,7 @@ def get_company_tickers(
     return companies
 
 
-def _load_from_json(company: str, statement_type: str) -> list[dict[str, int | str]]:
+def load_from_json(company: str, statement_type: str) -> list[dict[str, int | str]]:
     """
     Loads data from local json file and returns a dictionary
     """
@@ -213,7 +213,7 @@ def _load_from_json(company: str, statement_type: str) -> list[dict[str, int | s
     return data[company]
 
 
-def _fetch_from_api(company: str, statement_type: str) -> list[dict[str, int | str]]:
+def fetch_from_api(company: str, statement_type: str) -> list[dict[str, int | str]]:
     """
     Fetches data from the API and returns a dictionary
     """
@@ -223,7 +223,7 @@ def _fetch_from_api(company: str, statement_type: str) -> list[dict[str, int | s
     return response.json()
 
 
-def _save_to_db(
+def save_to_db(
     data: dict,
     statement_type: str,
     db_path: str = "financial_data.db",
