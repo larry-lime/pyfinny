@@ -356,25 +356,25 @@ def dcf_analysis(
         # FCF Buildup
         letters = ["C", "D", "E"]
         for rev, letter in zip(total_rev[-3:], letters):
-            worksheet[f"{letter}19"] = rev // unit
+            worksheet[f"{letter}19"] = rev
         worksheet["C20"] = first_year_growth_rate
         for net_income, letter in zip(netIncome[-3:], letters):
-            worksheet[f"{letter}21"] = net_income // unit
+            worksheet[f"{letter}21"] = net_income
         for noplat, letter in zip(noplat[-3:], letters):
-            worksheet[f"{letter}24"] = noplat // unit
+            worksheet[f"{letter}24"] = noplat
         for dep_and_amort, letter in zip(depreciationAndAmortization[-3:], letters):
-            worksheet[f"{letter}26"] = dep_and_amort // unit
+            worksheet[f"{letter}26"] = dep_and_amort
         for wc, letter in zip(workingCapital[-3:], letters):
-            worksheet[f"{letter}28"] = wc // unit
+            worksheet[f"{letter}28"] = wc
         for cap_expend, letter in zip(capitalExpenditure[-3:], letters):
-            worksheet[f"{letter}30"] = cap_expend // unit
+            worksheet[f"{letter}30"] = cap_expend
 
         # WACC Calculation
         worksheet["C36"] = average_rate_of_debt
         worksheet["C37"] = effectiveTaxRate
         worksheet["C40"] = beta
-        worksheet["E36"] = totalDebt // unit
-        worksheet["E37"] = marketCap // unit
+        worksheet["E36"] = totalDebt
+        worksheet["E37"] = marketCap
 
     workbook.save(dcf_analysis_path)
 
