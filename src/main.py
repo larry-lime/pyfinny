@@ -11,6 +11,7 @@ API_KEY = os.getenv("API_KEY")
 
 resource_dirname = "resources"
 data_dirname = "data"
+unit = 1000000
 
 statement_types = [
     "balance-sheet-statement",
@@ -178,7 +179,6 @@ def comparables_analysis(
     workbook.active = worksheet
 
     starting_row = 7
-    unit = 1000000
 
     for row_increment, company in enumerate(companies):
         (
@@ -228,7 +228,7 @@ def comparables_analysis(
     workbook.save(comparables_analysis_path)
 
 
-# Combine this and _comparables_analysis_helper into one function
+# TODO Combine this and _comparables_analysis_helper into one function
 def _dcf_helper(
     company: str,
     db_path: str = "financial_data.db",
@@ -356,25 +356,25 @@ def dcf_analysis(
         # FCF Buildup
         letters = ["C", "D", "E"]
         for rev, letter in zip(total_rev[-3:], letters):
-            worksheet[f"{letter}19"] = rev
+            worksheet[f"{letter}19"] = rev // unit
         worksheet["C20"] = first_year_growth_rate
         for net_income, letter in zip(netIncome[-3:], letters):
-            worksheet[f"{letter}21"] = net_income
+            worksheet[f"{letter}21"] = net_income // unit
         for noplat, letter in zip(noplat[-3:], letters):
-            worksheet[f"{letter}24"] = noplat
+            worksheet[f"{letter}24"] = noplat // unit
         for dep_and_amort, letter in zip(depreciationAndAmortization[-3:], letters):
-            worksheet[f"{letter}26"] = dep_and_amort
+            worksheet[f"{letter}26"] = dep_and_amort // unit
         for wc, letter in zip(workingCapital[-3:], letters):
-            worksheet[f"{letter}28"] = wc
+            worksheet[f"{letter}28"] = wc // unit
         for cap_expend, letter in zip(capitalExpenditure[-3:], letters):
-            worksheet[f"{letter}30"] = cap_expend
+            worksheet[f"{letter}30"] = cap_expend // unit
 
         # WACC Calculation
         worksheet["C36"] = average_rate_of_debt
         worksheet["C37"] = effectiveTaxRate
         worksheet["C40"] = beta
-        worksheet["E36"] = totalDebt
-        worksheet["E37"] = marketCap
+        worksheet["E36"] = totalDebt // unit
+        worksheet["E37"] = marketCap // unit
 
     workbook.save(dcf_analysis_path)
 
