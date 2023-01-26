@@ -3,5 +3,6 @@ lib
 lib64
 include
 .env
-src/__pycache__/
+__pycache__
+pyfinny.egg-info
 .DS_Store
