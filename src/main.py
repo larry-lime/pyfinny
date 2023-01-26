@@ -9,7 +9,6 @@ import openpyxl
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
-# Directory Names
 resource_dirname = "resources"
 data_dirname = "data"
 
@@ -239,16 +238,6 @@ def _dcf_helper(
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Some Notes
-    # Manually input perpetual growth
-    # Calculate growth rate from the previous year's revenue
-    # Get revenue for 4 years
-    # Manually input risk free rate
-    # Manually input expected return
-    # Manually input Beta
-    # effectiveTaxRate = incomeTaxExpense / incomeBeforeTax
-    # Calculate NOPLAT from ebit * (1 - effectiveTaxRate)
-    # Calculate average rate of debt
     profile_dict = {
         "price": 0.0,
         "mktCap": 0,
@@ -272,15 +261,6 @@ def _dcf_helper(
     cash_flow_statement_dict = {
         "capitalExpenditure": [],
     }
-
-    # Values that need to be returned as a list because I need to do a three year projection
-    # NOPLAT = ebit * (1 - (incomeTaxExpense / incomeBeforeTax))
-    # workingCapital = totalCurrentAssets - totalCurrentLiabilities
-    # average_rate_of_debt = (interestExpense / totalDebt) * -1
-    # netIncome, NOPLAT, depreciationAndAmortization, workingCapital, capitalExpenditure
-
-    # Values that are an integer or float. I have to figure out how to get beta though
-    # sharesOutstanding, price, totalDebt, (latest) effectiveTaxRate
 
     for value_type in profile_dict:
         cursor.execute(f"SELECT {value_type} FROM profile WHERE symbol = '{company}'")
@@ -320,7 +300,7 @@ def dcf_analysis(
     companies: list[str],
     template_name: str = "Template",
     dcf_analysis_name: str = "dcf.xlsx",
-):
+):  # sourcery skip: hoist-statement-from-loop
     """
     Write a DCF analysis to an Excel file.
     """
@@ -328,130 +308,82 @@ def dcf_analysis(
     dcf_analysis_path = os.path.join(resource_dirname, dcf_analysis_name)
     workbook = openpyxl.load_workbook(dcf_analysis_path)
 
-    # TODO: Complete the rest of the code here
     for company in companies:
-        # Make a copy of the first sheet
         workbook.copy_worksheet(workbook[template_name])
-
-        # Rename the worksheet
         worksheet = workbook["Template Copy"]
         worksheet.title = "".join(company)
         (
-            profile_dict,
-            income_statement_dict,
-            balance_sheet_dict,
-            cash_flow_statement_dict,
+            profile,
+            income_statement,
+            balance_sheet,
+            cash_flow_statement,
         ) = _dcf_helper(company)
 
-        # DCF Valuation
-        sharesOutstanding = profile_dict["mktCap"] / profile_dict["price"]
-        current_share_price = profile_dict["price"]
+        # Load Data
+        current_share_price = profile["price"]
+        marketCap = profile["mktCap"]
+        beta = profile["beta"]
+        total_rev = income_statement["revenue"]
+        netIncome = income_statement["netIncome"]
+        ebitda = income_statement["ebitda"]
+        depreciationAndAmortization = income_statement["depreciationAndAmortization"]
+        totalDebt = balance_sheet["totalDebt"]
+        capitalExpenditure = cash_flow_statement["capitalExpenditure"]
 
-        # FCF Buildup
-        total_revenue = income_statement_dict["revenue"]
-        netIncome = income_statement_dict["netIncome"]
-        # NOTE: This changes when the range of years the DCF uses changes
-        first_year_growth_rate = (total_revenue[1] - total_revenue[0]) / total_revenue[0]
-
-        ebitda = income_statement_dict["ebitda"]
-        depreciationAndAmortization = income_statement_dict[
-            "depreciationAndAmortization"
-        ]
+        # Calculate Additional Metrics
+        first_year_growth_rate = (total_rev[1] - total_rev[0]) / total_rev[0] # This changes when the range of years the DCF uses changes
         ebit = [e - d_and_a for e, d_and_a in zip(ebitda, depreciationAndAmortization)]
+        sharesOutstanding = marketCap / current_share_price
         effectiveTaxRate = (
-            income_statement_dict["incomeTaxExpense"]
-            / income_statement_dict["incomeBeforeTax"]
+            income_statement["incomeTaxExpense"] / income_statement["incomeBeforeTax"]
         )
         noplat = [e * (1 - effectiveTaxRate) for e in ebit]
         workingCapital = [
             tca - tcl
             for tca, tcl in zip(
-                balance_sheet_dict["totalCurrentAssets"],
-                balance_sheet_dict["totalCurrentLiabilities"],
+                balance_sheet["totalCurrentAssets"],
+                balance_sheet["totalCurrentLiabilities"],
             )
         ]
-        capitalExpenditure = cash_flow_statement_dict["capitalExpenditure"]
-
-        # WACC Calculation
         average_rate_of_debt = (
-            income_statement_dict["interestExpense"] / balance_sheet_dict["totalDebt"]
-        ) * -1
-        tax_rate = effectiveTaxRate
-        totalDebt = balance_sheet_dict["totalDebt"]
-        marketCap = profile_dict["mktCap"]
-        beta = profile_dict["beta"]
+            income_statement["interestExpense"] / balance_sheet["totalDebt"]
+        ) * 1
 
         # DCF Valuation
-        # In C10, insert the number of shares outstanding
         worksheet["C10"] = sharesOutstanding
-        # In C11, insert the current share price
         worksheet["C11"] = current_share_price
 
         # FCF Buildup
-        # In C19, D19, E19, insert the total revenue for the last 3 years
-        # Iterate over the last three values in the total_revenue list
         letters = ["C", "D", "E"]
-        for revenue, letter in zip(total_revenue[-3:], letters):
-            worksheet[f"{letter}19"] = revenue
-        # In C19, insert the first year growth rate
+        for rev, letter in zip(total_rev[-3:], letters):
+            worksheet[f"{letter}19"] = rev
         worksheet["C20"] = first_year_growth_rate
-        # In C21, D21, E21, insert the net income for the last 3 years
-        # Iterate over the last three values in the netIncome list
         for net_income, letter in zip(netIncome[-3:], letters):
             worksheet[f"{letter}21"] = net_income
-        # In C24, D24, E24, insert the noplat for the last 3 years
-        # Iterate over the last three values in the noplat list
         for noplat, letter in zip(noplat[-3:], letters):
             worksheet[f"{letter}24"] = noplat
-        # In C26, D26, E26, insert the depreciationAndAmortization for the last 3 years
-        # Iterate over the last three values in the depreciationAndAmortization list
         for dep_and_amort, letter in zip(depreciationAndAmortization[-3:], letters):
             worksheet[f"{letter}26"] = dep_and_amort
-        # In C28, D28, E28, insert the workingCapital for the last 3 years
-        # Iterate over the last three values in the workingCapital list
         for wc, letter in zip(workingCapital[-3:], letters):
             worksheet[f"{letter}28"] = wc
-        # In C30, D30, E30, insert the capitalExpenditure for the last 3 years
-        # Iterate over the last three values in the capitalExpenditure list
         for cap_expend, letter in zip(capitalExpenditure[-3:], letters):
             worksheet[f"{letter}30"] = cap_expend
 
         # WACC Calculation
-        # In C36, insert the average_rate_of_debt
         worksheet["C36"] = average_rate_of_debt
-        # In C37, insert the tax_rate
-        worksheet["C37"] = tax_rate
-        # In C40, insert the beta
+        worksheet["C37"] = effectiveTaxRate
         worksheet["C40"] = beta
-        # In E36, insert the totalDebt
         worksheet["E36"] = totalDebt
-        # In E37 insert the mkCap
         worksheet["E37"] = marketCap
 
     workbook.save(dcf_analysis_path)
 
 
 def main():
-    companies = get_company_tickers()
+    companies = get_company_tickers("load.txt")
+    # get_financials(companies)
     # comparables_analysis(companies)
     dcf_analysis(companies)
-    # (
-    #     profile_dict,
-    #     income_statement_dict,
-    #     balance_sheet_dict,
-    #     cash_flow_statement_dict,
-    # ) = _dcf_helper("AAPL")
-    # print("profile_dict")
-    # [print(i, j) for i, j in profile_dict.items()]
-    # print("\nincome_statement_dict")
-    # [print(i, j) for i, j in income_statement_dict.items()]
-    # print("\nbalance_sheet_dict")
-    # [print(i, j) for i, j in balance_sheet_dict.items()]
-    # print("\ncash_flow_statement_dict")
-    # [print(i, j) for i, j in cash_flow_statement_dict.items()]
-    # print(income_statement_dict)
-    # print(balance_sheet_dict)
-    # print(cash_flow_statement_dict)
 
 
 if __name__ == "__main__":
