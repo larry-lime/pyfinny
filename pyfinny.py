@@ -6,6 +6,12 @@ import click
 def cli():
     pass
 
+@cli.command()
+def setup():
+    """
+    Run the setup command before you begin analyzing
+    """
+    pass
 
 @cli.command()
 @click.option(
