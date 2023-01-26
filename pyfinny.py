@@ -1,4 +1,5 @@
 from tqdm import tqdm
+
 # from app import application
 import click
 from dotenv import load_dotenv
@@ -29,27 +30,20 @@ def cli():
 
 
 @cli.command()
-def get_company_tickers(
-    filename: str = "load.txt",
-    ticker_dirname: str = "tickers",
-) -> list[str]:
-    """
-    Reads a file of tickers and returns a list of tickers
-    """
-    companies = []
-    filepath = os.path.join(ticker_dirname, filename)
-    with open(filepath, "r") as f:
-        companies.extend(line.strip() for line in f)
-    return companies
-
-
-@cli.command()
+@click.option(
+    "-f",
+    "--filename",
+    type=str,
+    help="File with tickers to load",
+    default="load.txt",
+)
 def get_financials(
-    companies: list[str],
+    filename: str,
 ) -> None:
     """
     Calls _fetch_from_api() to fetch data from the API and _save_to_db() to save the data to a database
     """
+    companies = _get_company_tickers(filename)
     for statement_type in statement_types:
         for company in tqdm(companies, desc=f"Writing {statement_type} data"):
             financial_statement_data = _fetch_from_api(company, statement_type)
@@ -60,18 +54,36 @@ def get_financials(
 
 @cli.command()
 @click.option(
-    "-n",
-    "--dcf_analysis_name",
+    "-f",
+    "--filename",
     type=str,
-    help="Name of excel sheet with DCF template",
-    default="dcf.xlsx",
+    default="load.txt",
+    help="File with tickers to use for DCF",
 )
+@click.option(
+    "-d",
+    "--ticker_dir",
+    type=str,
+    help="Name of directory with ticker files",
+    default="tickers",
+)
+def get_tickers(filename, ticker_dir):
+    """
+    Prints tickers in file
+    """
+    # Print filename with a long line under it
+    click.echo(filename)
+    click.echo('---------------')
+    [click.echo(i) for i in _get_company_tickers(filename)]
+
+
+@cli.command()
 @click.option(
     "-f",
     "--filename",
     type=str,
-    help="File with tickers to use for DCF",
     default="load.txt",
+    help="File with tickers to use for DCF",
 )
 @click.option(
     "-t",
@@ -80,8 +92,17 @@ def get_financials(
     help="Name of excel sheet with DCF template",
     default="Template",
 )
+@click.option(
+    "-n",
+    "--dcf_analysis_name",
+    type=str,
+    help="Name of excel file with DCF template",
+    default="dcf.xlsx",
+)
 def dcf_analysis(
-    filename: str, template_name: str, dcf_analysis_name: str
+    filename,
+    template_name,
+    dcf_analysis_name,
 ):  # sourcery skip: hoist-statement-from-loop
     """
     Write a DCF analysis to an Excel file.
@@ -90,7 +111,7 @@ def dcf_analysis(
     dcf_analysis_path = os.path.join(resource_dirname, dcf_analysis_name)
     workbook = openpyxl.load_workbook(dcf_analysis_path)
 
-    companies = get_company_tickers(filename)
+    companies = _get_company_tickers(filename)
     for company in companies:
         workbook.copy_worksheet(workbook[template_name])
         worksheet = workbook["Template Copy"]
@@ -165,28 +186,44 @@ def dcf_analysis(
 
 
 @cli.command()
+@click.option(
+    "-n",
+    "--comparables_analysis_name",
+    type=str,
+    help="Name of excel file with Comparables Analysis template",
+    default="comparables_analysis.xlsx",
+)
+@click.option(
+    "-f",
+    "--filename",
+    type=str,
+    help="File with tickers to use for Comparables Analysis",
+    default="compare.txt",
+)
+@click.option(
+    "-t",
+    "--template_name",
+    type=str,
+    help="Name of excel sheet with Comparables Analysis template",
+    default="Template",
+)
 def comparables_analysis(
-    companies: list[str],
+    filename: str,
     template_name: str = "Template",
     comparables_analysis_name: str = "comparables_analysis.xlsx",
 ) -> None:
     """
     Writes data from sqlite3 database to comparables_analysis.xlsx
     """
-    # Open xlsx file
+    companies = _get_company_tickers(filename)
     comparables_analysis_path = os.path.join(
         resource_dirname, comparables_analysis_name
     )
     workbook = openpyxl.load_workbook(comparables_analysis_path)
-    # Make a copy of the first sheet
     workbook.copy_worksheet(workbook[template_name])
 
-    # Rename the worksheet
     worksheet = workbook["Template Copy"]
     worksheet.title = " ".join(companies)
-
-    # Change active worksheet
-    workbook.active = worksheet
 
     starting_row = 7
 
@@ -233,9 +270,23 @@ def comparables_analysis(
         ] = "=INDIRECT(ADDRESS(ROW(),COLUMN()-9))/INDIRECT(ADDRESS(ROW(),COLUMN()-4))"
 
         if row_increment < len(companies) - 1:
-            workbook.active.insert_rows(starting_row)
+            worksheet.insert_rows(starting_row)
 
     workbook.save(comparables_analysis_path)
+
+
+def _get_company_tickers(
+    filename: str = "load.txt",
+    ticker_dirname: str = "tickers",
+) -> list[str]:
+    """
+    Reads a file of tickers and returns a list of tickers
+    """
+    companies = []
+    filepath = os.path.join(ticker_dirname, filename)
+    with open(filepath, "r") as f:
+        companies.extend(line.strip() for line in f)
+    return companies
 
 
 def _load_from_json(company: str, statement_type: str) -> list[dict[str, int | str]]:
@@ -344,7 +395,6 @@ def _comparables_analysis_helper(
     )
 
 
-# TODO Combine this and _comparables_analysis_helper into one function
 def _dcf_helper(
     company: str,
     db_path: str = "financial_data.db",
@@ -354,12 +404,12 @@ def _dcf_helper(
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    profile_dict = {
+    profile = {
         "price": 0.0,
         "mktCap": 0,
         "beta": 0.0,
     }
-    income_statement_dict = {
+    income_statement = {
         "netIncome": [],
         "revenue": [],
         "ebitda": [],
@@ -368,55 +418,56 @@ def _dcf_helper(
         "incomeBeforeTax": 0,
         "interestExpense": 0,
     }
-    balance_sheet_dict = {
+    balance_sheet = {
         "cashAndCashEquivalents": [],
         "totalCurrentAssets": [],
         "totalCurrentLiabilities": [],
         "totalDebt": 0,
     }
-    cash_flow_statement_dict = {
+    cash_flow_statement = {
         "capitalExpenditure": [],
     }
 
-    for value_type in profile_dict:
+    for value_type in profile:
         cursor.execute(f"SELECT {value_type} FROM profile WHERE symbol = '{company}'")
-        profile_dict[value_type] = cursor.fetchone()[0]
+        profile[value_type] = cursor.fetchone()[0]
 
-    for value_type in income_statement_dict:
+    for value_type in income_statement:
         cursor.execute(
             f"SELECT {value_type} FROM income_statement WHERE symbol = '{company}'"
         )
         if value_type in ["incomeTaxExpense", "incomeBeforeTax", "interestExpense"]:
-            income_statement_dict[value_type] = cursor.fetchone()[0]
+            income_statement[value_type] = cursor.fetchone()[0]
         else:
-            income_statement_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
-    for value_type in balance_sheet_dict:
+            income_statement[value_type] = [tup[0] for tup in cursor.fetchall()]
+    for value_type in balance_sheet:
         cursor.execute(
             f"SELECT {value_type} FROM balance_sheet WHERE symbol = '{company}'"
         )
         if value_type in ["totalDebt"]:
-            balance_sheet_dict[value_type] = cursor.fetchone()[0]
+            balance_sheet[value_type] = cursor.fetchone()[0]
         else:
-            balance_sheet_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
-    for value_type in cash_flow_statement_dict:
+            balance_sheet[value_type] = [tup[0] for tup in cursor.fetchall()]
+    for value_type in cash_flow_statement:
         cursor.execute(
             f"SELECT {value_type} FROM cash_flow_statement WHERE symbol = '{company}'"
         )
-        cash_flow_statement_dict[value_type] = [tup[0] for tup in cursor.fetchall()]
+        cash_flow_statement[value_type] = [tup[0] for tup in cursor.fetchall()]
 
     return (
-        profile_dict,
-        income_statement_dict,
-        balance_sheet_dict,
-        cash_flow_statement_dict,
+        profile,
+        income_statement,
+        balance_sheet,
+        cash_flow_statement,
     )
 
 
 def main():
-    companies = get_company_tickers("load.txt")
+    # companies = get_company_tickers("load.txt")
     # get_financials(companies)
     # comparables_analysis(companies)
-    dcf_analysis(companies)
+    # dcf_analysis()
+    pass
 
 
 if __name__ == "__main__":

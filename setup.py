@@ -25,6 +25,6 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        cooltool=pyfinny:cli
+        pyfin=pyfinny:cli
     """,
 )
