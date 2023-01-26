@@ -3,11 +3,17 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = fh.read()
+with open("requirements.txt", "r", encoding="utf-8") as f:
+    all_reqs = f.read().split("\n")
+
+requirements = [
+    x.strip()
+    for x in all_reqs
+    if ("git+" not in x) and (not x.startswith("#")) and (not x.startswith("-"))
+]
 setup(
     name="pyfinny",
-    version="0.0.1",
+    version="0.0.5",
     author="Lawrence Lim",
     author_email="ll4715@nyu.edu",
     license="GNU GPLv3",
