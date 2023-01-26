@@ -17,7 +17,7 @@ setup(
     url="https://github.com/larry-lime/pyfinny",
     py_modules=["pyfinny", "app"],
     packages=find_packages(),
-    install_requires=[requirements],
+    install_requires=requirements,
     python_requires=">=3.7",
     classifiers=[
         "Programming Language :: Python :: 3.10",
