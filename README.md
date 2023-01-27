@@ -6,15 +6,15 @@
     git clone https://github.com/larry-lime/pyfinny.git
     cd pyfinny
     ```
-2. Create a python virtual environment
+2. Create and start python virtual environment
     ```shell
-    python3 -m venv .
+    python -m venv venv
     ```
 3. Activate Python virtual environment
     ```shell
-    source bin/activate
+    source venv/bin/activate
     ```
 4. Install requirements
     ```shell
-    pip3 install -r requirements.txt
+    pip setup.py install
     ```
