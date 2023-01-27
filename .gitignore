@@ -1,0 +1,7 @@
+__pycache__
+.DS_Store
+.env
+venv
+dist
+build
+pyfinny.egg-info
