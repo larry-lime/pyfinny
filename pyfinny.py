@@ -48,9 +48,13 @@ def tickers(filename, ticker_dir):
     Prints tickers in file
     """
     # Print filename with a long line under it
-    click.echo(filename)
-    click.echo("---------------")
-    [click.echo(i) for i in application.get_company_tickers(filename)]
+    # Iterate over all filenames in the ticers directory
+    for filename in os.listdir(ticker_dir):
+        # Print the filename with a long line under it
+        click.echo(filename)
+        click.echo("---------------")
+        [click.echo(i) for i in application.get_company_tickers(filename)]
+        click.echo("---------------")
 
 
 @cli.command()
