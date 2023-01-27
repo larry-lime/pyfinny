@@ -9,13 +9,14 @@ def cli():
 
 
 @cli.command()
-def setup(new_key):
+def setup():
     """
     Run the setup command before you begin analyzing
     """
     api_key = click.prompt("Enter your Financial Modelling Prep API Key")
     application.set_api_key(api_key)
     application.make_database()
+    click.echo("Setup complete")
 
 
 @cli.command()
@@ -94,6 +95,7 @@ def data(table):
     "--ticker_dir",
     type=str,
     help="Name of directory with ticker files",
+    # Directory containing venv
     default="tickers",
 )
 def tickers(filename, ticker_dir):

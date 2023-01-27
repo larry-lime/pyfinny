@@ -10,8 +10,9 @@ import platform
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-
-resource_dirname = "resources"
+# Make sure it's always a string
+TICKERS_PATH = str(os.getenv("TICKERS_PATH"))
+RESOURCE_PATH = str(os.getenv("RESOURCE_PATH"))
 unit = 1000000
 
 statement_types = [
@@ -20,6 +21,19 @@ statement_types = [
     "income-statement",
     "profile",
 ]
+
+
+def add_paths_to_env(
+    resource_dirname: str = "resources", tickers_dirname: str = "tickers"
+):
+    """
+    Add the paths to the .env file
+    """
+    resource_path = os.path.abspath(resource_dirname)
+    tickers_path = os.path.abspath(tickers_dirname)
+    with open(".env", "a") as f:
+        f.write(f"RESOURCE_PATH={resource_path}")
+        f.write(f"TICKERS_PATH={tickers_path}")
 
 
 def open_xlsx(
@@ -37,6 +51,7 @@ def open_xlsx(
     else:  # linux variants
         subprocess.call(("xdg-open", filename))
 
+
 def get_tables():
     """
     Get the tables from the database
@@ -45,6 +60,7 @@ def get_tables():
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     return cursor.fetchall()
+
 
 def show_data(table_name):
     """
@@ -59,7 +75,6 @@ def show_data(table_name):
     for row in cursor.fetchall():
         print(row)
     print("---------------")
-
 
 
 def set_api_key(
@@ -297,7 +312,7 @@ def dcf_analysis(
     Write a DCF analysis to an Excel file.
     """
     # Open xlsx file
-    dcf_analysis_path = os.path.join(resource_dirname, dcf_analysis_name)
+    dcf_analysis_path = os.path.join(RESOURCE_PATH, dcf_analysis_name)
     workbook = openpyxl.load_workbook(dcf_analysis_path)
 
     companies = get_company_tickers(filename)
@@ -383,9 +398,7 @@ def comparables_analysis(
     Writes data from sqlite3 database to comparables_analysis.xlsx
     """
     companies = get_company_tickers(filename)
-    comparables_analysis_path = os.path.join(
-        resource_dirname, comparables_analysis_name
-    )
+    comparables_analysis_path = os.path.join(RESOURCE_PATH, comparables_analysis_name)
     workbook = openpyxl.load_workbook(comparables_analysis_path)
     workbook.copy_worksheet(workbook[template_name])
 
@@ -444,13 +457,12 @@ def comparables_analysis(
 
 def get_company_tickers(
     filename: str = "load.txt",
-    ticker_dirname: str = "tickers",
 ) -> list[str]:
     """
     Reads a file of tickers and returns a list of tickers
     """
     companies = []
-    filepath = os.path.join(ticker_dirname, filename)
+    filepath = os.path.join(TICKERS_PATH, filename)
     with open(filepath, "r") as f:
         companies.extend(line.strip() for line in f)
     return companies
