@@ -11,7 +11,29 @@ def setup():
     """
     Run the setup command before you begin analyzing
     """
-    pass
+    api_key = click.prompt("Enter your Financial Modelling Prep API Key")
+    application.set_api_key(api_key)
+    application.make_database()
+
+
+@cli.command()
+@click.argument(
+    "filename",
+    type=str,
+)
+@click.option(
+    "-d",
+    "--resource_dir",
+    type=str,
+    help="Name of directory with Excel Files",
+    default="resources",
+)
+def open(filename, resource_dir):
+    """
+    Open the excel file
+    """
+    application.open_xlsx(resource_dir, f"{filename}.xlsx")
+
 
 @cli.command()
 @click.option(
