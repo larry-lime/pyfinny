@@ -121,6 +121,7 @@ def dcf_analysis(
 
     workbook.save(dcf_analysis_path)
 
+
 def comparables_analysis(
     filename: str,
     template_name: str = "Template",
