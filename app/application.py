@@ -37,6 +37,15 @@ def open_xlsx(
     else:  # linux variants
         subprocess.call(("xdg-open", filename))
 
+def get_tables():
+    """
+    Get the tables from the database
+    """
+    conn = sqlite3.connect("financial_data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    return cursor.fetchall()
+
 def show_data(table_name):
     """
     Display the data from the database
@@ -44,7 +53,12 @@ def show_data(table_name):
     conn = sqlite3.connect("financial_data.db")
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM {table_name}")
-    print(cursor.fetchall())
+    # Format the data
+    print(f"Table: {table_name}")
+    print("---------------")
+    for row in cursor.fetchall():
+        print(row)
+    print("---------------")
 
 
 
