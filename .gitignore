@@ -5,3 +5,4 @@ venv
 dist
 build
 pyfinny.egg-info
+financial_data.db
