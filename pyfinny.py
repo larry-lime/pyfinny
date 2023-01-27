@@ -1,13 +1,15 @@
 from app import application
 import click
+import os
 
 
 @click.group()
 def cli():
     pass
 
+
 @cli.command()
-def setup():
+def setup(new_key):
     """
     Run the setup command before you begin analyzing
     """
@@ -98,10 +100,7 @@ def tickers(filename, ticker_dir):
     """
     Prints tickers in file
     """
-    # Print filename with a long line under it
-    # Iterate over all filenames in the ticers directory
     for filename in os.listdir(ticker_dir):
-        # Print the filename with a long line under it
         click.echo(filename)
         click.echo("---------------")
         [click.echo(i) for i in application.get_company_tickers(filename)]
