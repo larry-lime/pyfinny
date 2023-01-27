@@ -16,6 +16,7 @@ def setup():
     api_key = click.prompt("Enter your Financial Modelling Prep API Key")
     application.set_api_key(api_key)
     application.make_database()
+    application.add_paths_to_env()
     click.echo("Setup complete")
 
 
