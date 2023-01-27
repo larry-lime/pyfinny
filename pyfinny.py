@@ -30,6 +30,35 @@ def load(filename):
 
 @cli.command()
 @click.option(
+    "-t",
+    "--table",
+    type=str,
+    help="Name of table to print",
+)
+def data(table):
+    """
+    Prints print data from database
+    """
+    # Ask the user if they want to print all tables
+    boolean = click.prompt("Do you want to print all financial statement data (y/n)")
+    if boolean == "y":
+        for table in application.get_tables():
+            application.show_data(table[0])
+        return
+    else:
+        bal = click.prompt("Do you want to print the balance sheet? (y/n)")
+        inc = click.prompt("Do you want to print the income statement? (y/n)")
+        cash = click.prompt("Do you want to print the cash flow statement? (y/n)")
+        if bal == "y":
+            application.show_data("balance_sheet")
+        if inc == "y":
+            application.show_data("income_statement")
+        if cash == "y":
+            application.show_data("cash_flow_statement")
+
+
+@cli.command()
+@click.option(
     "-f",
     "--filename",
     type=str,
