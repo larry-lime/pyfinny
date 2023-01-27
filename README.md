@@ -1,6 +1,7 @@
 # Pyfinny
 
 ## Installation
+Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
 1. Clone the repository or download the release binary
     ```shell
     git clone https://github.com/larry-lime/pyfinny.git
@@ -16,5 +17,5 @@
     ```
 4. Install requirements
     ```shell
-    pip setup.py install
+    pip3 install .
     ```
