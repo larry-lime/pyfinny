@@ -117,7 +117,7 @@ def tickers(filename, ticker_dir):
     "-f",
     "--filename",
     type=str,
-    default="load.txt",
+    default="dcf.txt",
     help="File with tickers to use for DCF",
 )
 @click.option(
