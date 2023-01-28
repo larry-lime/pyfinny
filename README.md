@@ -24,7 +24,7 @@ This is a command-line interface (CLI) tool for analyzing financial statements a
 3. Bash or Zsh terminal. Windows users are highly advised to use WSL
 
 ## Optional Requirements
-1. [Sqlite Browser](https://sqlitebrowser.org/) to view and manipulate the data
+1. [Sqlite Browser](https://sqlitebrowser.org/) to view and manipulate the data in the database
 
 ## Installation
 Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
