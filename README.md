@@ -43,7 +43,7 @@ Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
     ```
 4. Install requirements
     ```shell
-    pip3 install .
+    python3 setup.py develop
     ```
 ## Usage
 Run `pyfin` in your terminal to begin using the application

@@ -148,7 +148,7 @@ def dcf(filename, template_name, dcf_analysis_name):
     "--comparables_analysis_name",
     type=str,
     help="Name of excel file with Comparables Analysis template",
-    default="comparables_analysis.xlsx",
+    default="compare.xlsx",
 )
 @click.option(
     "-f",
