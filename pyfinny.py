@@ -169,4 +169,4 @@ def compare(filename, template_name, comparables_analysis_name):
     Comparables analysis
     """
     application.comparables_analysis(filename, template_name, comparables_analysis_name)
-    click.echo(f"Wrote to {filename}")
+    click.echo(f"Wrote to {comparables_analysis_name}")
