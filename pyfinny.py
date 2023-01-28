@@ -1,4 +1,4 @@
-from app import application
+from app import application, utils
 import click
 import os
 
@@ -14,8 +14,8 @@ def setup():
     Run the setup command before you begin analyzing
     """
     api_key = click.prompt("Enter your Financial Modelling Prep API Key")
-    application.set_api_key(api_key)
-    application.make_database()
+    utils.set_api_key(api_key)
+    utils.make_database()
     click.echo("Setup complete")
 
 
@@ -35,7 +35,7 @@ def open(filename, resource_dir):
     """
     Open the excel file
     """
-    application.open_xlsx(resource_dir, f"{filename}.xlsx")
+    utils.open_xlsx(resource_dir, f"{filename}.xlsx")
 
 
 @cli.command()
@@ -67,19 +67,22 @@ def data(table):
     # Ask the user if they want to print all tables
     boolean = click.prompt("Do you want to print all financial statement data (y/n)")
     if boolean == "y":
-        for table in application.get_tables():
-            application.show_data(table[0])
+        for table in utils.get_tables():
+            utils.show_data(table[0])
         return
     else:
         bal = click.prompt("Do you want to print the balance sheet? (y/n)")
         inc = click.prompt("Do you want to print the income statement? (y/n)")
         cash = click.prompt("Do you want to print the cash flow statement? (y/n)")
+        prof = click.prompt("Do you want to print the company profile? (y/n)")
         if bal == "y":
-            application.show_data("balance_sheet")
+            utils.show_data("balance_sheet")
         if inc == "y":
-            application.show_data("income_statement")
+            utils.show_data("income_statement")
         if cash == "y":
-            application.show_data("cash_flow_statement")
+            utils.show_data("cash_flow_statement")
+        if prof == "y":
+            utils.show_data("profile")
 
 
 @cli.command()
