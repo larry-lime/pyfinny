@@ -1,7 +1,22 @@
 # Pyfinny
 
+## Contents
+1. [Introduction](#introduction)
+2. [Requirements](#requirements)
+3. [Optional Requirements](#optional-requirements)
+4. [Installation](#installation)
+5. [Usage](#usage)
+    1. [Setup](#setup)
+    2. [Open Excel File](#open-excel-file)
+    3. [Load Company Financial Statements](#load-company-financial-statements)
+    4. [Print Data from Database](#print-data-from-database)
+    5. [Print Tickers](#print-tickers)
+    6. [Discounted Cash Flow Analysis](#discounted-cash-flow-analysis)
+    7. [Comparables Analysis](#comparables-analysis)
+
+
 ## Introduction
-This is a command-line interface (CLI) tool for analyzing financial statements and performing discounted cash flow (DCF) and comparables analysis. The tool uses the Financial Modelling Prep API, which requires an API key.
+This is a command-line interface (CLI) tool for analyzing financial statements and performing discounted cash flow (DCF) and comparables analysis. The tool uses the Financial Modelling Prep API, which requires an API key. The Github repository with source code and release binaries can be found [here](https://github.com/larry-lime/pyfinny)
 
 ## Requirements
 1. Python 3.10 installation
@@ -13,7 +28,7 @@ This is a command-line interface (CLI) tool for analyzing financial statements a
 
 ## Installation
 Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
-1. Clone the repository or download the release binary
+1. Clone the repository or download the [release binary](https://github.com/larry-lime/pyfinny/releases/download/v1.0.0/pyfinny-1.0.0.zip)
     ```shell
     git clone https://github.com/larry-lime/pyfinny.git
     cd pyfinny
