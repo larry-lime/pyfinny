@@ -25,6 +25,7 @@ This is a command-line interface (CLI) tool for analyzing financial statements a
 
 ## Optional Requirements
 1. [Sqlite Browser](https://sqlitebrowser.org/) to view and manipulate the data in the database
+2. [Homebrew](https://brew.sh/) and Git to develop the application
 
 ## Installation
 Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
@@ -136,7 +137,7 @@ $ pyfin dcf
 
 ### Comparables Analysis
 
-To perform a comparables analysis, use the comparables command. The `-n` or `--comparables_analysis_name` option can be used to specify the name of the Excel file to write the comparables analysis to. If not provided, the default file name is `comparables_analysis.xlsx`. The `-f` or `--filename` option can be used to specify the file containing the tickers to use for the analysis. If not provided, the default file is `load.txt`. The `
+To perform a comparables analysis, use the comparables command. The `-n` or `--comparables_analysis_name` option can be used to specify the name of the Excel file to write the comparables analysis to. If not provided, the default file name is `comparables_analysis.xlsx`. The `-f` or `--filename` option can be used to specify the file containing the tickers to use for the analysis. If not provided, the default file is `load.txt`.
 ```shell
 $ pyfin compare [-n|--comparables_analysis_name] [-f|--filename]
 ```
@@ -145,4 +146,3 @@ To perform a comparables analysis using the companies in `compare.txt`, run the 
 ```shell
 $ pyfin compare
 ```
-
