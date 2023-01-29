@@ -35,7 +35,7 @@ Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
     ```
 2. Create and start python virtual environment
     ```shell
-    python -m venv venv
+    python3 -m venv venv
     ```
 3. Activate Python virtual environment
     ```shell
