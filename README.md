@@ -1,6 +1,8 @@
 # Pyfinny
 
 ## Introduction
+Video [Demo](https://www.youtube.com/watch?v=kn-JD7uQlpU) 
+
 This is a command-line interface (CLI) tool for analyzing financial statements and performing discounted cash flow (DCF) and comparables analysis. The tool uses the Financial Modelling Prep API, which requires an API key. The Github repository with source code and release binaries can be found [here](https://github.com/larry-lime/pyfinny)
 
 ## Contents
