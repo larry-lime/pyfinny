@@ -43,7 +43,11 @@ Note: use `python3`,`pip3` on MacOS and `python`, `pip` on Windows
     ```shell
     source venv/bin/activate
     ```
-4. Install requirements
+4. Install Requirements
+    ```shell
+    pip3 install -r requirements.txt
+    ```
+5. Run setup script
     ```shell
     python3 setup.py develop
     ```
